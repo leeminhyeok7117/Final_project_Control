@@ -12,24 +12,30 @@ class MasterReader(Node):
         # --- [설정구역] ---
         self.DEVICE_NAME = '/dev/ttyUSB0'
         self.BAUDRATE = 1000000
-        self.MASTER_IDS = [0, 1, 2, 3, 4, 5]  # ID 5번은 XL430
+        self.MASTER_IDS = [0, 1, 2, 3, 4, 5]
 
         self.ADDR_AX_TORQUE = 24
         self.ADDR_AX_POS = 36
         self.ADDR_XL_TORQUE = 64
         self.ADDR_XL_POS = 132
         
-        # [안전 설정]
-        self.MAX_FAIL_COUNT = 10 
+        # [CLOSE 기준값 (Master 기준)]
+        self.MASTER_CLOSE_THRESHOLD = 2170 
         # -----------------
 
         self.port_h = PortHandler(self.DEVICE_NAME)
         self.packet_h1 = PacketHandler(1.0) 
         self.packet_h2 = PacketHandler(2.0) 
 
-        # 위치 저장소 (초기값 0)
-        self.last_positions = {dxl_id: 0 for dxl_id in self.MASTER_IDS}
+        # [핵심] 학습용 데이터 저장소 (외부에서 이 변수를 가져다 쓰면 됩니다)
+        # ID 0~4: Master 값 그대로
+        # ID 5  : Master 값 반전 (4095 - Master)
+        self.learning_state = {dxl_id: 0 for dxl_id in self.MASTER_IDS}
+
+        # 통신 실패 카운트 등
+        self.last_raw_positions = {dxl_id: 0 for dxl_id in self.MASTER_IDS}
         self.fail_counts = {dxl_id: 0 for dxl_id in self.MASTER_IDS}
+        self.MAX_FAIL_COUNT = 10
 
         if not self.setup_dynamixel():
             return
@@ -44,75 +50,88 @@ class MasterReader(Node):
             self.get_logger().error("보드레이트 설정 실패!")
             return False
 
-        # 토크 OFF
+        # 토크 OFF (Master는 손으로 움직임)
         for dxl_id in self.MASTER_IDS:
             if dxl_id == 5:
                 self.packet_h2.write1ByteTxRx(self.port_h, dxl_id, self.ADDR_XL_TORQUE, 0)
             else:
                 self.packet_h1.write1ByteTxRx(self.port_h, dxl_id, self.ADDR_AX_TORQUE, 0)
         
-        self.get_logger().info("초기화 완료: 모든 모터 토크 OFF")
-        print("--------------------------------")
+        self.get_logger().info("초기화 완료: 토크 OFF")
+        print("-------------------------------------------------------")
+        print(" ID |  Model  | Master Raw | Learning Val | Status ")
+        print("-------------------------------------------------------")
         return True
 
-    # [수정됨] 각도 변환 함수 (5번 모터 조건 추가)
-    def convert_to_degree(self, dxl_id, raw_pos):
-        # 1. AX-12/18A 로직 (0 ~ 1023)
+    def process_data_for_learning(self, dxl_id, raw_pos):
+        """
+        Master에서 읽은 원본 값(raw_pos)을 
+        Slave(학습 모델)가 사용할 값으로 변환하여 리턴합니다.
+        """
+        # 1. AX-12 (ID 0~4): 그대로 사용
         if dxl_id != 5:
-            if raw_pos < 0 or raw_pos > 1023:
-                return " [RANGE ERR]" 
-            
-            degree = (raw_pos - 512) * 0.293 
-            return f" => {degree:6.1f}°"
+            return raw_pos
 
-        # 2. XL430 로직 (ID 5번)
+        # 2. XL430 (ID 5): 방향 반전 처리 (Invert)
         else:
-            # [추가된 로직] 2170 초과 시 CLOSE 표시
-            if raw_pos > 2170:
-                return " => [CLOSE]   "  # 줄 맞춤을 위해 공백 추가
-
-            # 정상 각도 계산
-            if raw_pos < 0 or raw_pos > 4095:
-                return " [RANGE ERR]"
+            # XL430 범위: 0 ~ 4095
+            # Master가 커지면 Slave는 작아져야 하므로 (4095 - 값)
+            inverted_pos = 4095 - raw_pos
             
-            degree = (raw_pos - 2048) * 0.088 
-            return f" => {degree:6.1f}°"
+            # 범위 보정 (혹시 모를 음수 방지)
+            if inverted_pos < 0: inverted_pos = 0
+            if inverted_pos > 4095: inverted_pos = 4095
+            
+            return inverted_pos
 
     def read_master_pos(self):
         try:
+            print_buffer = []
+
             for dxl_id in self.MASTER_IDS:
-                # 1. 읽기 시도
+                # 1. 읽기
                 if dxl_id == 5:
                     pos, res, err = self.packet_h2.read4ByteTxRx(self.port_h, dxl_id, self.ADDR_XL_POS)
                 else:
                     pos, res, err = self.packet_h1.read2ByteTxRx(self.port_h, dxl_id, self.ADDR_AX_POS)
                 
-                # 2. 데이터 처리
+                status_msg = ""
+                
+                # 2. 통신 성공 시 처리
                 if res == COMM_SUCCESS:
-                    self.last_positions[dxl_id] = pos
+                    self.last_raw_positions[dxl_id] = pos
                     self.fail_counts[dxl_id] = 0
                     
-                    final_pos = pos
-                    status_note = "" 
+                    # [핵심] 학습용 변수에 데이터 가공해서 저장
+                    learning_val = self.process_data_for_learning(dxl_id, pos)
+                    self.learning_state[dxl_id] = learning_val
+
+                # 3. 통신 실패 시 (이전 값 유지)
                 else:
                     self.fail_counts[dxl_id] += 1
-                    final_pos = self.last_positions[dxl_id] 
+                    pos = self.last_raw_positions[dxl_id]
+                    learning_val = self.learning_state[dxl_id]
+                    status_msg = "(LOST)" if self.fail_counts[dxl_id] < self.MAX_FAIL_COUNT else "(DISCON!)"
 
-                    if self.fail_counts[dxl_id] < self.MAX_FAIL_COUNT:
-                        status_note = "(KEEP)"
+                # 4. 출력용 메시지 생성
+                model_name = "XL430" if dxl_id == 5 else "AX-12"
+                
+                # XL430 (ID 5)에 대한 CLOSE 표시 로직
+                # Master의 Raw 값이 2170을 넘으면 닫힌 것으로 간주
+                if dxl_id == 5:
+                    if pos > self.MASTER_CLOSE_THRESHOLD:
+                        status_msg = f"[CLOSE] (Raw>{self.MASTER_CLOSE_THRESHOLD})"
                     else:
-                        status_note = "(DISCONNECTED!)"
-
-                # 3. 출력 메시지 조립
-                model_name = "(XL430)" if dxl_id == 5 else "(AX-12)"
+                        status_msg = " [OPEN]"
                 
-                # 각도 변환 값 가져오기
-                angle_str = self.convert_to_degree(dxl_id, final_pos)
-                
-                # 최종 출력
-                print(f"[ID:{dxl_id:02d}] {model_name} Pos: {final_pos:04d} {status_note:<15} {angle_str}")
+                # 출력 포맷: [ID] [모델] [마스터원본] -> [학습용저장값] [상태]
+                print_buffer.append(f"[{dxl_id:02d}] {model_name} :  {pos:04d}    ->   {learning_val:04d}      {status_msg}")
 
-            # 커서 올리기
+            # 화면 출력
+            for line in print_buffer:
+                print(line)
+            
+            # 커서 복귀
             sys.stdout.write(f"\033[{len(self.MASTER_IDS)}F")
             sys.stdout.flush()
 
@@ -128,8 +147,14 @@ def main(args=None):
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
-        print("\n" * len(node.MASTER_IDS)) 
-        node.get_logger().info('테스트 종료')
+        print("\n" * (len(node.MASTER_IDS) + 2)) 
+        
+        # [확인용] 종료 시 마지막 저장된 학습 데이터 출력
+        print("=== [최종 학습 데이터 (self.learning_state)] ===")
+        print(node.learning_state)
+        print("==============================================")
+        
+        node.get_logger().info('종료')
     finally:
         node.stop()
         node.destroy_node()
