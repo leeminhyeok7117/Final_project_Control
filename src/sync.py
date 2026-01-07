@@ -60,7 +60,7 @@ class MasterSlaveTeleop(Node):
         print("================================================================================")
         print("  Master   |  Slave Target (Inverted) |  Deg (Slave)  |   Status  ")
         print("================================================================================")
-        self.timer = self.create_timer(0.05, self.control_loop)
+        self.timer = self.create_timer(0.1, self.control_loop)
 
     def setup_ports(self):
         if not self.ph_master.openPort() or not self.ph_slave.openPort(): return False
