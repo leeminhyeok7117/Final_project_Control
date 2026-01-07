@@ -83,7 +83,7 @@ class MasterSlaveTeleop(Node):
             deg = (slave_target - 2048) * 0.088
             deg_str = f"({deg:6.1f}°)"
             
-            # 상태 메시지 (CLOSE 체크는 Master가 쥔 값을 기준으로 함)
+            # 상태 메시지 (CLOSE 체크는 Master가 쥔 값을 기준으로 함)d
             status = ""
             if master_raw > self.MASTER_CLOSE_THRESHOLD:
                 status = "[CLOSE] !!!"
