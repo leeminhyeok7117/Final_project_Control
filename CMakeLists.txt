@@ -16,6 +16,13 @@ find_package(rosidl_default_generators REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+install(DIRECTORY
+  urdf
+  meshes
+  launch
+  rviz
+  DESTINATION share/${PROJECT_NAME}
+)
 
 install(PROGRAMS
   src/sync.py
@@ -25,5 +32,10 @@ install(PROGRAMS
 )
 
 ament_export_dependencies(rosidl_default_runtime)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
 
 ament_package()
