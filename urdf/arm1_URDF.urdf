@@ -1,5 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot name="arm1_URDF">
+    <link name="world"/>
+
+    <joint name="world_to_base" type="fixed">
+        <parent link="world"/>
+        <child link="base"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
     <link name="base">
         <inertial>
             <origin xyz="0.008961373290610065 0.00031017825769898496 0.38065215286612986" rpy="0.0 0.0 0.0" />
@@ -9,16 +17,17 @@
         <visual name="base_visual">
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
             <geometry>
-                <mesh filename="meshes/base.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/base.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="base_collision">
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
             <geometry>
-                <mesh filename="meshes/base.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/base.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
+
     <link name="G_2">
         <inertial>
             <origin xyz="-4.821200741520926e-05 0.051650002701983486 -0.002814704308230833" rpy="0.0 2.368366047466264e-63 0.0" />
@@ -28,16 +37,17 @@
         <visual name="G_2_visual">
             <origin xyz="2.0128343436454088e-10 0.05165000270197695 0.013000003750249733" rpy="2.002738253015227e-15 7.101207647974653e-16 1.570796326794897" />
             <geometry>
-                <mesh filename="meshes/G_2.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_2.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="G_2_collision">
             <origin xyz="2.0128343436454088e-10 0.05165000270197695 0.013000003750249733" rpy="2.002738253015227e-15 7.101207647974653e-16 1.570796326794897" />
             <geometry>
-                <mesh filename="meshes/G_2.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_2.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
+
     <link name="G_4">
         <inertial>
             <origin xyz="-0.04038463037117424 -0.044414441092075575 -4.320119320340154e-06" rpy="0.0 -0.0 0.0" />
@@ -47,16 +57,17 @@
         <visual name="G_4_visual">
             <origin xyz="-0.16499999979871727 -0.04037499624975029 -2.7019774506698015e-09" rpy="1.7610609731376742e-16 -2.573057226334117e-29 -1.7087026238371833e-16" />
             <geometry>
-                <mesh filename="meshes/G_4.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_4.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="G_4_collision">
             <origin xyz="-0.16499999979871727 -0.04037499624975029 -2.7019774506698015e-09" rpy="1.7610609731376742e-16 -2.573057226334117e-29 -1.7087026238371833e-16" />
             <geometry>
-                <mesh filename="meshes/G_4.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_4.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
+
     <link name="G_5">
         <inertial>
             <origin xyz="-5.758088230791714e-05 -0.03928037497096947 -0.08083082075167397" rpy="0.0 -0.0 0.0" />
@@ -66,16 +77,17 @@
         <visual name="G_5_visual">
             <origin xyz="2.0128354094595124e-10 -0.04037499624975054 0.1605499972980239" rpy="1.791524518917108e-15 1.5707963267948954 0" />
             <geometry>
-                <mesh filename="meshes/G_5.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_5.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="G_5_collision">
             <origin xyz="2.0128354094595124e-10 -0.04037499624975054 0.1605499972980239" rpy="1.791524518917108e-15 1.5707963267948954 0" />
             <geometry>
-                <mesh filename="meshes/G_5.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_5.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
+
     <link name="G_7">
         <inertial>
             <origin xyz="-0.03995100615140672 -3.642925092995075e-06 -0.002794027387896847" rpy="-5.0690771927675844e-77 -0.0 0.0" />
@@ -85,16 +97,17 @@
         <visual name="G_7_visual">
             <origin xyz="-0.05755000270197741 3.750245046729717e-09 -0.011500000201280579" rpy="3.1415926535897927 2.5641103280022327e-16 -1.5707963267948697" />
             <geometry>
-                <mesh filename="meshes/G_7.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_7.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="G_7_collision">
             <origin xyz="-0.05755000270197741 3.750245046729717e-09 -0.011500000201280579" rpy="3.1415926535897927 2.5641103280022327e-16 -1.5707963267948697" />
             <geometry>
-                <mesh filename="meshes/G_7.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_7.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
+
     <link name="G_13">
         <inertial>
             <origin xyz="0.016230777562398303 0.020920008922724 -0.050990561533745905" rpy="0.0 -0.0 0.0" />
@@ -104,16 +117,17 @@
         <visual name="G_13_visual">
             <origin xyz="2.0125753508182242e-10 0.022500003750231614 -2.6986778323134787e-09" rpy="-1.570796326794858 -1.5707963267948835 0" />
             <geometry>
-                <mesh filename="meshes/G_13.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_13.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="G_13_collision">
             <origin xyz="2.0125753508182242e-10 0.022500003750231614 -2.6986778323134787e-09" rpy="-1.570796326794858 -1.5707963267948835 0" />
             <geometry>
-                <mesh filename="meshes/G_13.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_13.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
+
     <link name="G_25">
         <inertial>
             <origin xyz="-0.04021770217309118 -3.5949038116602496e-05 -0.11308873190424037" rpy="0.0 -0.0 0.0" />
@@ -123,16 +137,17 @@
         <visual name="G_25_visual">
             <origin xyz="-0.20042499979871903 -0.0013749962497433682 0.2570499972980261" rpy="-2.6939362145612463e-14 -4.567492924800655e-16 7.892991815698548e-17" />
             <geometry>
-                <mesh filename="meshes/G_25.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_25.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="G_25_collision">
             <origin xyz="-0.20042499979871903 -0.0013749962497433682 0.2570499972980261" rpy="-2.6939362145612463e-14 -4.567492924800655e-16 7.892991815698548e-17" />
             <geometry>
-                <mesh filename="meshes/G_25.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_25.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
+
     <link name="G_27">
         <inertial>
             <origin xyz="4.24878932776096e-06 -3.695564278066721e-08 -0.021545386615046312" rpy="0.0 -0.0 0.0" />
@@ -142,16 +157,17 @@
         <visual name="G_27_visual">
             <origin xyz="-0.1604249997987264 -0.0013749962497556223 0.40269999730132183" rpy="-2.6767837078595948e-14 -3.1103246755847983e-16 7.892991815698414e-17" />
             <geometry>
-                <mesh filename="meshes/G_27.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_27.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="G_27_collision">
             <origin xyz="-0.1604249997987264 -0.0013749962497556223 0.40269999730132183" rpy="-2.6767837078595948e-14 -3.1103246755847983e-16 7.892991815698414e-17" />
             <geometry>
-                <mesh filename="meshes/G_27.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_27.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
+
     <link name="G_28">
         <inertial>
             <origin xyz="-0.029549211332298847 -0.00019460842477873912 -0.06834793045878229" rpy="0.0 -0.0 0.0" />
@@ -161,85 +177,70 @@
         <visual name="G_28_visual">
             <origin xyz="-0.17742499979873574 -0.0013749962497559575 0.45294999730132146" rpy="-2.6767837078595948e-14 -5.762524652680451e-16 7.89299181569836e-17" />
             <geometry>
-                <mesh filename="meshes/G_28.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_28.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </visual>
         <collision name="G_28_collision">
             <origin xyz="-0.17742499979873574 -0.0013749962497559575 0.45294999730132146" rpy="-2.6767837078595948e-14 -5.762524652680451e-16 7.89299181569836e-17" />
             <geometry>
-                <mesh filename="meshes/G_28.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://final_project/meshes/G_28.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>
-    <link name="G_2">
-        <inertial>
-            <origin xyz="-0.0028147078571976714 4.8215958948043536e-05 -0.05165000270198391" rpy="0.0 -0.0 0.0" />
-            <mass value="1.4003802960724079" />
-            <inertia ixx="0.00206489714125091" iyy="0.0012716465775932662" izz="0.0012733156966414846" ixy="9.507691201273371e-07" iyz="-8.326672684688674e-17" ixz="8.326672684688674e-17" />
-        </inertial>
-        <visual name="G_2_visual">
-            <origin xyz="0.01300000020128289 3.7502495991992294e-09 -0.05165000270197751" rpy="-1.4109373391857367e-14 1.5707963267948963 0" />
-            <geometry>
-                <mesh filename="meshes/G_2.stl" scale="0.001 0.001 0.001" />
-            </geometry>
-        </visual>
-        <collision name="G_2_collision">
-            <origin xyz="0.01300000020128289 3.7502495991992294e-09 -0.05165000270197751" rpy="-1.4109373391857367e-14 1.5707963267948963 0" />
-            <geometry>
-                <mesh filename="meshes/G_2.stl" scale="0.001 0.001 0.001" />
-            </geometry>
-        </collision>
-    </link>
-    <joint name="회전-10" type="continuous">
+
+    <joint name="joint_10" type="continuous">
         <origin xyz="0.11955 0.040374999999999994 -0.051650000000000064" rpy="-3.5113466634615537e-31 -0.0 -2.3738919364399067e-66" />
         <parent link="G_2" />
         <child link="G_4" />
         <axis xyz="1.0 0.0 -2.465190328815662e-32" />
     </joint>
-    <joint name="회전-11" type="continuous">
+
+    <joint name="joint_11" type="continuous">
         <origin xyz="-3.552713678800501e-17 0.051650000000000064 0.019750000000000004" rpy="1.5707963267948966 4.463542775542222e-47 5.605193857299268e-45" />
         <parent link="G_2" />
         <child link="G_5" />
         <axis xyz="0.0 1.0 4.4755935958520466e-31" />
     </joint>
-    <joint name="회전-12" type="continuous">
+
+    <joint name="joint_12" type="continuous">
         <origin xyz="-0.0001249999999999929 -0.039 -0.19194999999999993" rpy="-1.8487926954202153e-15 -1.5707963267948966 0" />
         <parent link="G_5" />
         <child link="G_7" />
         <axis xyz="1.0 5.827954054064347e-31 -1.2351231148954849e-14" />
     </joint>
-    <joint name="회전-13" type="continuous">
+
+    <joint name="joint_13" type="continuous">
         <origin xyz="-0.05755000000000066 7.382983113757291e-17 -0.04" rpy="4.70462019996466e-32 1.5707963267948841 0" />
         <parent link="G_7" />
         <child link="G_25" />
         <axis xyz="1.0 0.0 2.891008291347084e-31" />
     </joint>
-    <joint name="회전-14" type="continuous">
+
+    <joint name="joint_14" type="continuous">
         <origin xyz="0.017250000000000015 0.0 -0.05025000000000006" rpy="-6.312213884124065e-64 4.930380657631324e-32 1.1347551481098548e-32" />
         <parent link="G_27" />
         <child link="G_28" />
         <axis xyz="4.930380657631324e-32 0.0 1.0" />
     </joint>
-    <joint name="회전-15" type="continuous">
+
+    <joint name="joint_15" type="continuous">
         <origin xyz="-0.04 0.0 -0.24949997999999995" rpy="-7.591481487369757e-65 -3.9686267332812115e-32 6.6682750465799775e-34" />
         <parent link="G_25" />
         <child link="G_27" />
         <axis xyz="9.860761315262648e-32 0.0 1.0" />
     </joint>
-    <joint name="회전-16" type="continuous">
+
+    <joint name="joint_16" type="continuous">
         <origin xyz="-0.004250000000000007 -0.02075 -0.05074999999999996" rpy="-1.8856650730814692e-65 4.930380657631324e-32 -2.613319425339874e-33" />
         <parent link="G_28" />
         <child link="G_13" />
         <axis xyz="0.0 0.0 1.0" />
     </joint>
-    <joint name="강체-17" type="fixed">
-        <origin xyz="0.0 -0.01975 0.051650000000000064" rpy="-1.5707963267948966 -5.605193857299268e-45 4.46354277554222e-47" />
-        <parent link="G_4" />
-        <child link="G_2" />
-    </joint>
-    <joint name="강체-18" type="fixed">
+
+    <joint name="fixed_18" type="fixed">
         <origin xyz="0.09099999979871715 -3.750249421563545e-09 1.0266500027019778" rpy="8.673617379883954e-19 1.3065901218165487e-62 1.5777218104420236e-30" />
         <parent link="base" />
         <child link="G_2" />
     </joint>
+
 </robot>

@@ -8,7 +8,7 @@ def generate_launch_description():
     pkg_share = get_package_share_directory(pkg_name)
     
     # URDF 파일 경로 설정
-    urdf_file = os.path.join(pkg_share, 'urdf', 'arm1_URDF.urdf')
+    urdf_file = os.path.join(pkg_share, 'urdf', 'arm1_URDF_plus.urdf')
     
     # URDF 파일 읽기
     with open(urdf_file, 'r') as infp:
