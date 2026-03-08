@@ -25,8 +25,7 @@ install(DIRECTORY
 )
 
 install(PROGRAMS
-  src/sync.py
-  src/test1.py
+  src/test.py
 
   DESTINATION lib/${PROJECT_NAME}
 )

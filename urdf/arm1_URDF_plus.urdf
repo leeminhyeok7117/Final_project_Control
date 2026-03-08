@@ -1,11 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot name="arm1_URDF">
     <link name="base">
-        <!-- <inertial>
-            <origin xyz="0.008961373290610065 0.00031017825769898496 0.38065215286612986" rpy="0.0 0.0 0.0" />
-            <mass value="12.376433616429376" />
-            <inertia ixx="2.1510954261765014" iyy="2.154381483050222" izz="0.06323514261024876" ixy="-0.0001525059966750246" iyz="-0.002266418724614806" ixz="-0.06596733683320778" />
-        </inertial> -->
         <visual name="base_visual">
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
             <geometry>
@@ -19,6 +14,7 @@
             </geometry>
         </collision>
     </link>
+
     <link name="G_2">
         <inertial>
             <origin xyz="-4.8145237741863414e-05 0.05165000270198917 -0.002790724958750035" rpy="0.0 -0.0 0.0" />
@@ -38,6 +34,7 @@
             </geometry>
         </collision>
     </link>
+
     <link name="G_4">
         <inertial>
             <origin xyz="0.05935499319035209 0.004031725154343588 4.315289153140612e-06" rpy="0.0 -0.0 0.0" />
@@ -57,6 +54,7 @@
             </geometry>
         </collision>
     </link>
+
     <link name="G_5">
         <inertial>
             <origin xyz="-5.7580882307952665e-05 0.039280374970969485 0.08083082075167425" rpy="0.0 -0.0 0.0" />
@@ -76,6 +74,7 @@
             </geometry>
         </collision>
     </link>
+
     <link name="G_7">
         <inertial>
             <origin xyz="-0.03998592210060096 -3.6356901924380903e-06 -0.002861891143963007" rpy="-3.589353794432332e-78 -0.0 0.0" />
@@ -95,6 +94,7 @@
             </geometry>
         </collision>
     </link>
+
     <link name="G_13">
         <inertial>
             <origin xyz="0.01623077756239752 -0.050990561533745905 0.020079991077276673" rpy="0.0 1.2668940227414186e-48 0.0" />
@@ -114,6 +114,7 @@
             </geometry>
         </collision>
     </link>
+
     <link name="G_25">
         <inertial>
             <origin xyz="-0.04021770217309118 3.594903811657252e-05 0.11308873190424187" rpy="0.0 -0.0 0.0" />
@@ -133,6 +134,7 @@
             </geometry>
         </collision>
     </link>
+
     <link name="G_27">
         <inertial>
             <origin xyz="4.24878932776096e-06 -3.6955642726543836e-08 -0.021545386615044605" rpy="0.0 -0.0 0.0" />
@@ -152,6 +154,7 @@
             </geometry>
         </collision>
     </link>
+
     <link name="G_28">
         <inertial>
             <origin xyz="-0.068347930458783 -0.00019460842477868307 0.029549211332298847" rpy="-3.067013772411597e-121 -0.0 0.0" />
@@ -171,6 +174,7 @@
             </geometry>
         </collision>
     </link>
+
     <link name="G_50">
         <inertial>
             <origin xyz="-0.051650002701988454 -4.814918927475764e-05 -0.002790728507716764" rpy="0.0 -0.0 0.0" />
@@ -190,73 +194,106 @@
             </geometry>
         </collision>
     </link>
+
     <joint name="강체-21" type="fixed">
         <origin xyz="0.0998 -0.020625 -0.051650000000000064" rpy="1.5707963267948966 4.930380657631324e-32 9.041975947780647e-48" />
         <parent link="G_4" />
         <child link="G_2" />
     </joint>
+
     <joint name="회전-22" type="continuous">
         <origin xyz="-3.552713678800501e-17 0.051650000000000064 0.019750000000000004" rpy="-1.5707963267948966 -9.041975947780647e-48 2.7550144169516306e-65" />
         <parent link="G_2" />
         <child link="G_5" />
         <axis xyz="-0.0 1.0 4.5415775653176777e-32" />
     </joint>
+
     <joint name="회전-23" type="continuous">
         <origin xyz="-0.0001249999999999929 0.039 0.19194999999999993" rpy="3.1415926535897913 1.5707963267948966 0" />
         <parent link="G_5" />
         <child link="G_7" />
         <axis xyz="1.0 -6.91019838872938e-32 -1.2351231148954849e-14" />
     </joint>
+
     <joint name="회전-24" type="continuous">
         <origin xyz="-0.05755000000000066 7.382983113757291e-17 -0.04" rpy="3.141592653589793 1.5707963267948841 0" />
         <parent link="G_7" />
         <child link="G_25" />
         <axis xyz="-1.0 -0.0 -1.0579247490760367e-31" />
     </joint>
+
     <joint name="회전-25" type="continuous">
         <origin xyz="-0.04 0.0 0.24949997999999995" rpy="3.141592653589793 -5.555580851020513e-31 -1.70453562458216e-33" />
         <parent link="G_25" />
         <child link="G_27" />
         <axis xyz="0.0 -2.6982744187943636e-18 1.0" />
     </joint>
+
     <joint name="회전-26" type="continuous">
         <origin xyz="0.017250000000000015 2.7755575615628914e-19 -0.05025000000000006" rpy="2.0264192044396204e-30 -1.5707963267948966 0" />
         <parent link="G_27" />
         <child link="G_28" />
         <axis xyz="0.0 1.9888065789143055e-30 0.9999999999999999" />
     </joint>
+
     <joint name="회전-28" type="continuous">
         <origin xyz="-0.0507500000000001 0.02025 0.004250000000000007" rpy="1.570796326794911 1.5707963267948746 0" />
         <parent link="G_28" />
         <child link="G_13" />
         <axis xyz="-1.2408751811923e-32 1.4417991576258236e-14 1.0" />
     </joint>
+
     <joint name="강체-29" type="fixed">
         <origin xyz="0.09099999979871715 -3.750249421563545e-09 1.0266500027019778" rpy="-3.141592653589793 -1.5707963267948966 0" />
         <parent link="base" />
         <child link="G_50" />
     </joint>
+
     <joint name="회전-30" type="continuous">
         <origin xyz="-0.051650000000000064 0.0 0.019749999999999997" rpy="5.026394152510874e-33 -1.5707963267948966 0" />
         <parent link="G_50" />
         <child link="G_4" />
         <axis xyz="-1.0 0.0 0.0" />
     </joint>
+
+    <ros2_control name="FakeSystem" type="system">
+        <hardware>
+            <plugin>mock_components/GenericSystem</plugin>
+        </hardware>
+        <joint name="회전-30">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="회전-22">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="회전-23">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="회전-24">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="회전-25">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="회전-26">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="회전-28">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+    </ros2_control>
 </robot>
-<ros2_control name="FakeSystem" type="system">
-  <hardware>
-    <plugin>mock_components/GenericSystem</plugin>
-  </hardware>
-  <joint name="회전-30">
-    <command_interface name="position"/>
-    <state_interface name="position">
-      <param name="initial_value">0.0</param>
-    </state_interface>
-    <state_interface name="velocity"/>
-  </joint>
-  <joint name="회전-22">
-    <command_interface name="position"/>
-    <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
-    <state_interface name="velocity"/>
-  </joint>
-  </ros2_control>
