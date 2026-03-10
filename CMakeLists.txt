@@ -28,7 +28,8 @@ install(PROGRAMS
   src/test.py
   src/hello.py
   src/rviz.py
-
+  src/real_execute.py
+  src/calibrate_origin_keyboard.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
