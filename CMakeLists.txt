@@ -26,6 +26,8 @@ install(DIRECTORY
 
 install(PROGRAMS
   src/test.py
+  src/hello.py
+  src/rviz.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
