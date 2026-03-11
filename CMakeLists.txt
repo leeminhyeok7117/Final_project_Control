@@ -30,6 +30,7 @@ install(PROGRAMS
   src/rviz.py
   src/real_execute.py
   src/calibrate_origin_keyboard.py
+  src/teleoperate.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
