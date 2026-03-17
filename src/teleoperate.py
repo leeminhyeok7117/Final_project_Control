@@ -14,8 +14,8 @@ FOLLOWER_IDS = [1, 2, 3, 4, 5, 6, 7]        # 슬레이브 로봇 (기어 박스
 
 # --- 팔로워(1~7번) 기어비 및 방향 설정 ---
 GEAR_RATIOS = {1: 25, 2: 25, 3: 1, 4: 15, 5: 1, 6: 1, 7: 1}
-DIRECTION_MAP = {1: -1, 2: -1, 3: 1, 4: 1, 5: 1, 6: -1, 7: -1}
-BASE_MAX_VELOCITY = 600
+DIRECTION_MAP = {1: -1, 2: -1, 3: 1, 4: -1, 5: 1, 6: -1, 7: -1}
+BASE_MAX_VELOCITY = 32767
 
 class TeleopNode(Node):
     def __init__(self, port_handler, packet_handler):

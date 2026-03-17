@@ -28,9 +28,10 @@ install(PROGRAMS
   src/test.py
   src/hello.py
   src/rviz.py
-  src/real_execute.py
+  src/execute.py
   src/calibrate_origin_keyboard.py
   src/teleoperate.py
+  src/realtime_control.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
