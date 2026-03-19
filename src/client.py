@@ -1,0 +1,229 @@
+#!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from rclpy.action import ActionClient
+import math
+import csv
+
+from builtin_interfaces.msg import Duration
+from moveit_msgs.srv import GetPositionIK, GetMotionPlan
+from moveit_msgs.msg import Constraints, JointConstraint
+from geometry_msgs.msg import PoseStamped
+from control_msgs.action import FollowJointTrajectory
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+
+# --- 관절 제한 (이전과 동일) ---
+JOINT_LIMITS_DEG = {
+    '회전-30': (-120.0, 120.0), '회전-22': (-30.0, 90.0), '회전-23': (-90.0, 90.0),
+    '회전-24': (-115.0, 10.0),  '회전-25': (-90.0, 90.0), '회전-26': (-180.0, 180.0)
+}
+
+class WavingActionClient(Node):
+    def __init__(self):
+        super().__init__('waving_action_client')
+        
+        # 1. MoveIt 서비스 클라이언트 세팅 (궤적 계산용)
+        self.ik_client = self.create_client(GetPositionIK, '/compute_ik')
+        self.plan_client = self.create_client(GetMotionPlan, '/plan_kinematic_path')
+        
+        # 2. 액션 클라이언트 세팅 (실행용)
+        self._action_client = ActionClient(
+            self, FollowJointTrajectory, '/joint_trajectory_controller/follow_joint_trajectory')
+        
+        self.targets = [
+            {'x': 0.223, 'y': 0.129, 'z': 0.572, 'qx': 0.344, 'qy': -0.618, 'qz': -0.344, 'qw': 0.618},
+            {'x': 0.223, 'y': 0.384, 'z': 1.026, 'qx': -0.693, 'qy': 0.141, 'qz': 0.693, 'qw': -0.141},
+            {'x': 0.227, 'y': 0.331, 'z': 1.183, 'qx': -0.704, 'qy': 0.068, 'qz': 0.704, 'qw': -0.068},
+            {'x': 0.380, 'y': 0.298, 'z': 1.042, 'qx': -0.606, 'qy': 0.241, 'qz': 0.748, 'qw': 0.124},
+            {'x': 0.227, 'y': 0.331, 'z': 1.183, 'qx': -0.704, 'qy': 0.068, 'qz': 0.704, 'qw': -0.068},
+            {'x': -0.003, 'y': 0.341, 'z': 1.044, 'qx': 0.738, 'qy': 0.165, 'qz': -0.639, 'qw': 0.141},
+            {'x': 0.227, 'y': 0.331, 'z': 1.183, 'qx': -0.704, 'qy': 0.068, 'qz': 0.704, 'qw': -0.068},
+            {'x': 0.380, 'y': 0.298, 'z': 1.042, 'qx': -0.606, 'qy': 0.241, 'qz': 0.748, 'qw': 0.124},
+            {'x': 0.223, 'y': 0.384, 'z': 1.026, 'qx': -0.693, 'qy': 0.141, 'qz': 0.693, 'qw': -0.141},
+            {'x': 0.223, 'y': 0.129, 'z': 0.572, 'qx': 0.344, 'qy': -0.618, 'qz': -0.344, 'qw': 0.618}
+        ]
+        
+        self.target_joints = ['회전-30', '회전-22', '회전-23', '회전-24', '회전-25', '회전-26']
+        self.current_target_index = 0
+        self.total_time_offset = 0.0
+        self.all_trajectory_points = []
+        self.previous_end_joint_state = None 
+        self.pending_target_joint_state = None
+
+        # 노드 시작 후 1초 뒤에 궤적 짜기 시작
+        self.timer = self.create_timer(1.0, self.start_planning)
+        self.started_planning = False
+
+    def start_planning(self):
+        if self.started_planning: return
+        self.started_planning = True
+        self.get_logger().info('🧠 1단계: MoveIt을 통한 손인사 궤적 계산 시작...')
+        self.process_next_target()
+
+    def create_joint_constraints(self):
+        constraints = Constraints()
+        for joint_name, (min_deg, max_deg) in JOINT_LIMITS_DEG.items():
+            jc = JointConstraint()
+            jc.joint_name = joint_name
+            min_rad = math.radians(min_deg)
+            max_rad = math.radians(max_deg)
+            jc.position = (max_rad + min_rad) / 2.0
+            jc.tolerance_above = (max_rad - min_rad) / 2.0
+            jc.tolerance_below = (max_rad - min_rad) / 2.0
+            jc.weight = 1.0
+            constraints.joint_constraints.append(jc)
+        return constraints
+
+    def process_next_target(self):
+        if self.current_target_index >= len(self.targets):
+            self.get_logger().info('✅ 모든 궤적 계산 완료! 2초 뒤 액션 서버로 명령을 전송합니다.')
+            self.create_timer(2.0, self.send_action_goal)
+            return
+
+        pose_data = self.targets[self.current_target_index]
+        request = GetPositionIK.Request()
+        request.ik_request.group_name = 'arm'
+        request.ik_request.timeout = Duration(sec=5, nanosec=0)
+        request.ik_request.constraints = self.create_joint_constraints()
+
+        if self.previous_end_joint_state is None:
+            request.ik_request.robot_state.is_diff = True
+        else:
+            request.ik_request.robot_state.joint_state = self.previous_end_joint_state
+
+        pose = PoseStamped()
+        pose.header.frame_id = 'base' 
+        pose.pose.position.x = pose_data['x']
+        pose.pose.position.y = pose_data['y']
+        pose.pose.position.z = pose_data['z']
+        pose.pose.orientation.x = pose_data['qx']
+        pose.pose.orientation.y = pose_data['qy']
+        pose.pose.orientation.z = pose_data['qz']
+        pose.pose.orientation.w = pose_data['qw']
+
+        request.ik_request.pose_stamped = pose
+        self.get_logger().info(f'계산 중... [{self.current_target_index + 1}/{len(self.targets)}]')
+        
+        future = self.ik_client.call_async(request)
+        future.add_done_callback(self.ik_callback)
+
+    def ik_callback(self, future):
+        response = future.result()
+        if response.error_code.val == 1:
+            self.pending_target_joint_state = response.solution.joint_state
+            all_names = response.solution.joint_state.name
+            all_positions = response.solution.joint_state.position
+            target_positions = [all_positions[list(all_names).index(name)] for name in self.target_joints]
+            self.request_trajectory(target_positions)
+        else:
+            self.get_logger().error('❌ IK 실패')
+            rclpy.shutdown()
+
+    def request_trajectory(self, target_positions):
+        req = GetMotionPlan.Request()
+        req.motion_plan_request.group_name = 'arm'
+        req.motion_plan_request.num_planning_attempts = 10
+        req.motion_plan_request.allowed_planning_time = 5.0
+        req.motion_plan_request.path_constraints = self.create_joint_constraints()
+        
+        if self.previous_end_joint_state is None:
+            req.motion_plan_request.start_state.is_diff = True
+        else:
+            req.motion_plan_request.start_state.joint_state = self.previous_end_joint_state
+
+        goal_constraint = Constraints()
+        for name, pos in zip(self.target_joints, target_positions):
+            jc = JointConstraint()
+            jc.joint_name = name
+            jc.position = pos
+            jc.tolerance_above = 0.01
+            jc.tolerance_below = 0.01
+            jc.weight = 1.0
+            goal_constraint.joint_constraints.append(jc)
+        
+        req.motion_plan_request.goal_constraints.append(goal_constraint)
+        future = self.plan_client.call_async(req)
+        future.add_done_callback(self.plan_callback)
+
+    def plan_callback(self, future):
+        response = future.result()
+        if response.motion_plan_response.error_code.val == 1:
+            trajectory_points = response.motion_plan_response.trajectory.joint_trajectory.points
+            last_point_time = 0.0
+            
+            for point in trajectory_points:
+                t = point.time_from_start.sec + (point.time_from_start.nanosec / 1e9)
+                last_point_time = t
+                absolute_time = self.total_time_offset + t
+                self.all_trajectory_points.append((absolute_time, list(point.positions)))
+            
+            self.total_time_offset += last_point_time
+            self.total_time_offset += 0.5 # 점과 점 사이의 잠깐 대기 시간
+            
+            self.previous_end_joint_state = self.pending_target_joint_state
+            self.current_target_index += 1
+            self.process_next_target()
+        else:
+            self.get_logger().error('❌ 궤적 계획 실패')
+            rclpy.shutdown()
+
+    # ==========================================================
+    # Phase 2: 액션 클라이언트로 궤적 전송!
+    # ==========================================================
+    def send_action_goal(self):
+        self.get_logger().info('🚀 2단계: 궤적을 액션 서버로 던집니다!')
+        
+        if not self._action_client.wait_for_server(timeout_sec=3.0):
+            self.get_logger().error('❌ 액션 서버를 찾을 수 없습니다. dynamixel_action_server.py가 켜져 있나요?')
+            rclpy.shutdown()
+            return
+
+        goal_msg = FollowJointTrajectory.Goal()
+        trajectory = JointTrajectory()
+        trajectory.joint_names = self.target_joints
+
+        # 계산해둔 시간을 Action Point 형식에 맞게 변환하여 넣기
+        for t_target, angles in self.all_trajectory_points:
+            point = JointTrajectoryPoint()
+            point.positions = angles
+            
+            sec = int(t_target)
+            nanosec = int((t_target - sec) * 1e9)
+            point.time_from_start = Duration(sec=sec, nanosec=nanosec)
+            
+            trajectory.points.append(point)
+
+        goal_msg.trajectory = trajectory
+
+        self.get_logger().info('명령 전송 완료! 로봇 이동 대기 중...')
+        self._send_goal_future = self._action_client.send_goal_async(goal_msg)
+        self._send_goal_future.add_done_callback(self.goal_response_callback)
+
+    def goal_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().error('❌ 액션 서버가 명령을 거절했습니다.')
+            rclpy.shutdown()
+            return
+
+        self.get_logger().info('✅ 액션 서버가 명령을 수락했습니다! 열심히 움직이는 중...')
+        self._get_result_future = goal_handle.get_result_async()
+        self._get_result_future.add_done_callback(self.get_result_callback)
+
+    def get_result_callback(self, future):
+        result = future.result().result
+        self.get_logger().info('🏁 로봇으로부터 [손인사 완료] 보고를 받았습니다! 프로그램을 종료합니다.')
+        rclpy.shutdown()
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = WavingActionClient()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("\n[액션 클라이언트] 종료되었습니다.")
+
+if __name__ == '__main__':
+    main()

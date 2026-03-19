@@ -32,6 +32,9 @@ install(PROGRAMS
   src/calibrate_origin_keyboard.py
   src/teleoperate.py
   src/realtime_control.py
+  src/action_plan_and_execute.py
+  src/action.py
+  src/client.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
