@@ -9,6 +9,7 @@ import math
 import time
 from dynamixel_sdk import *
 import calibrate_origin_keyboard as calib
+import subprocess
 
 # --- 하드웨어 설정 ---
 JOINT_NAME_TO_ID = {
@@ -16,12 +17,15 @@ JOINT_NAME_TO_ID = {
     '회전-24': 4, '회전-25': 5, '회전-26': 6
 }
 GEAR_RATIOS = {1: 25, 2: 25, 3: 1, 4: 15, 5: 1, 6: 1, 7: 1}
-DIRECTION_MAP = {1: 1, 2: 1, 3: -1, 4: 1, 5: 1, 6: -1, 7: 1}
-BASE_MAX_VELOCITY = 1000
+DIRECTION_MAP = {1: 1, 2: 1, 3: -1, 4: 1, 5: -1, 6: -1, 7: 1}
 
 class DynamixelActionServer(Node):
     def __init__(self, port_handler, packet_handler):
         super().__init__('dynamixel_action_server')
+        
+        # 가짜 로봇(방해꾼) 차단
+        subprocess.run(['ros2', 'control', 'set_controller_state', 'joint_state_broadcaster', 'inactive'], capture_output=True)
+        subprocess.run(['ros2', 'control', 'set_controller_state', 'joint_trajectory_controller', 'inactive'], capture_output=True)
         
         self.portHandler = port_handler
         self.packetHandler = packet_handler
@@ -29,13 +33,17 @@ class DynamixelActionServer(Node):
         self.initial_motor_pulses = {}
         self.target_joints = list(JOINT_NAME_TO_ID.keys())
         
-        # 원점 펄스 캡처
+        # 원점 펄스 캡처 및 속도 제한 해제
         self.capture_current_state_as_origin()
         
-        # RViz 동기화용 퍼블리셔
+        # RViz 동기화용 퍼블리셔 및 현재 각도 저장 변수
         self.joint_pub = self.create_publisher(JointState, '/joint_states', 10)
+        self.current_angles = [0.0] * len(self.target_joints)
         
-        # 액션 서버 오픈!
+        # 로봇 위치 지속 방송 (0.05초)
+        self.state_timer = self.create_timer(0.05, self.publish_current_state)
+        
+        # 액션 서버 오픈
         self._action_server = ActionServer(
             self,
             FollowJointTrajectory,
@@ -46,68 +54,106 @@ class DynamixelActionServer(Node):
 
     def capture_current_state_as_origin(self):
         target_ids = list(JOINT_NAME_TO_ID.values())
-        max_ratio = max([GEAR_RATIOS[i] for i in target_ids])
         for dxl_id in target_ids:
+            # 1. 현재 원점 펄스 읽기
             pos, _, _ = self.packetHandler.read4ByteTxRx(self.portHandler, dxl_id, 132) 
             if pos > 2147483647: pos -= 4294967296
             self.initial_motor_pulses[dxl_id] = pos
-            vel = max(1, int(BASE_MAX_VELOCITY * (GEAR_RATIOS[dxl_id] / max_ratio)))
-            self.packetHandler.write4ByteTxRx(self.portHandler, dxl_id, 112, vel)
+            
+            self.packetHandler.write4ByteTxRx(self.portHandler, dxl_id, 112, 0)
+
+    def publish_current_state(self):
+        msg = JointState()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.name = self.target_joints
+        msg.position = self.current_angles
+        self.joint_pub.publish(msg)
+
 
     def execute_callback(self, goal_handle):
-        self.get_logger().info('📥 궤적 명령 수신! 모터 구동을 시작합니다.')
-        
-        trajectory = goal_handle.request.trajectory
-        points = trajectory.points
-        joint_names = trajectory.joint_names
-        
-        if not points:
-            goal_handle.abort()
-            return FollowJointTrajectory.Result()
-
-        # 첫 번째 포인트를 현재 각도로 간주 (상대 좌표 계산용)
-        initial_planned_angles = {name: points[0].positions[joint_names.index(name)] for name in self.target_joints}
-        start_time = time.time()
-        
-        for point in points:
-            t_target = point.time_from_start.sec + (point.time_from_start.nanosec / 1e9)
+            self.get_logger().info('📥 궤적 명령 수신! 모터 구동을 시작합니다.')
             
-            # 지정된 시간이 될 때까지 대기
-            while (time.time() - start_time) < t_target:
-                time.sleep(0.001)
-
-            angles = []
-            for name in self.target_joints:
-                idx = joint_names.index(name)
-                rad = point.positions[idx]
-                angles.append(rad)
-                
-                dxl_id = JOINT_NAME_TO_ID[name]
-                delta_rad = rad - initial_planned_angles[name]
-                delta_deg = math.degrees(delta_rad)
-                pulse_change = int(delta_deg * GEAR_RATIOS[dxl_id] * (4096.0/360.0) * DIRECTION_MAP[dxl_id])
-                goal = (self.initial_motor_pulses[dxl_id] + pulse_change) & 0xFFFFFFFF
-                
-                param = [DXL_LOBYTE(DXL_LOWORD(goal)), DXL_HIBYTE(DXL_LOWORD(goal)), 
-                         DXL_LOBYTE(DXL_HIWORD(goal)), DXL_HIBYTE(DXL_HIWORD(goal))]
-                self.groupSyncWrite.addParam(dxl_id, param)
-
-            self.groupSyncWrite.txPacket()
-            self.groupSyncWrite.clearParam()
-
-            # 현재 상태 방송
-            msg = JointState()
-            msg.header.stamp = self.get_clock().now().to_msg()
-            msg.name = self.target_joints
-            msg.position = angles
-            self.joint_pub.publish(msg)
+            trajectory = goal_handle.request.trajectory
+            points = trajectory.points
+            joint_names = trajectory.joint_names
             
-        goal_handle.succeed()
-        result = FollowJointTrajectory.Result()
-        result.error_code = FollowJointTrajectory.Result.SUCCESSFUL
-        self.get_logger().info('✅ 구동 완료! 성공 보고를 올렸습니다.')
-        
-        return result
+            if not points:
+                goal_handle.abort()
+                return FollowJointTrajectory.Result()
+
+            start_time = time.time()
+            last_goal_pulses = {} # 마지막 목표 위치 저장용
+
+            for point in points:
+                t_target = point.time_from_start.sec + (point.time_from_start.nanosec / 1e9)
+                
+                # MoveIt이 지시한 시간이 될 때까지 대기
+                while (time.time() - start_time) < t_target:
+                    time.sleep(0.001)
+
+                angles = []
+                for name in self.target_joints:
+                    idx = joint_names.index(name)
+                    rad = point.positions[idx]
+                    angles.append(rad)
+                    
+                    dxl_id = JOINT_NAME_TO_ID[name]
+                    
+                    delta_deg = math.degrees(rad)
+                    pulse_change = int(delta_deg * GEAR_RATIOS[dxl_id] * (4096.0/360.0) * DIRECTION_MAP[dxl_id])
+                    goal = (self.initial_motor_pulses[dxl_id] + pulse_change)
+                    
+                    # 마지막 포인트의 목표 펄스 저장
+                    last_goal_pulses[dxl_id] = goal
+                    
+                    # 4바이트 패킷 처리
+                    goal_unsigned = goal & 0xFFFFFFFF
+                    param = [DXL_LOBYTE(DXL_LOWORD(goal_unsigned)), DXL_HIBYTE(DXL_LOWORD(goal_unsigned)), 
+                            DXL_LOBYTE(DXL_HIWORD(goal_unsigned)), DXL_HIBYTE(DXL_HIWORD(goal_unsigned))]
+                    self.groupSyncWrite.addParam(dxl_id, param)
+
+                self.groupSyncWrite.txPacket()
+                self.groupSyncWrite.clearParam()
+                self.current_angles = angles
+
+            # -----------------------------------------------------------------
+            # 🌟 추가된 부분: 모든 모터가 목표 지점에 도달할 때까지 기다림
+            # -----------------------------------------------------------------
+            self.get_logger().info('⏳ 마지막 위치 도달 대기 중...')
+            
+            reaching_goal = False
+            timeout_start = time.time()
+            
+            while not reaching_goal:
+                all_done = True
+                for name in self.target_joints:
+                    dxl_id = JOINT_NAME_TO_ID[name]
+                    # 현재 위치 읽기 (Present Position: 132)
+                    cur_pos, _, _ = self.packetHandler.read4ByteTxRx(self.portHandler, dxl_id, 132)
+                    if cur_pos > 2147483647: cur_pos -= 4294967296
+                    
+                    # 목표 위치와 현재 위치의 오차가 허용 범위(예: 20펄스) 이내인지 확인
+                    if abs(cur_pos - last_goal_pulses[dxl_id]) > 25: # 약 2도 이내 오차
+                        all_done = False
+                        break
+                
+                if all_done:
+                    reaching_goal = True
+                
+                # 무한 루프 방지용 타임아웃 (예: 2초)
+                if (time.time() - timeout_start) > 5.0:
+                    self.get_logger().warn('⚠️ 도달 타임아웃 발생 (일부 모터가 목표치에 미달)')
+                    break
+                    
+                time.sleep(0.01)
+            # -----------------------------------------------------------------
+
+            goal_handle.succeed()
+            result = FollowJointTrajectory.Result()
+            result.error_code = FollowJointTrajectory.Result.SUCCESSFUL
+            self.get_logger().info('✅ 구동 및 위치 도달 완료! 성공 보고를 올렸습니다.')
+            
+            return result
 
 def main(args=None):
     print("\n[액션 서버] 원점 정렬을 진행합니다. 정렬 후 q를 눌러주세요.")
@@ -116,7 +162,6 @@ def main(args=None):
     rclpy.init(args=args)
     node = DynamixelActionServer(port_h, packet_h)
     
-    # 액션 콜백 중에도 다른 메시지 처리가 가능하도록 멀티스레드 사용
     executor = MultiThreadedExecutor()
     try:
         rclpy.spin(node, executor=executor)

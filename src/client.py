@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 import math
-import csv
+import time # sleep을 위해 추가
 
 from builtin_interfaces.msg import Duration
 from moveit_msgs.srv import GetPositionIK, GetMotionPlan
@@ -12,7 +12,6 @@ from geometry_msgs.msg import PoseStamped
 from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
-# --- 관절 제한 (이전과 동일) ---
 JOINT_LIMITS_DEG = {
     '회전-30': (-120.0, 120.0), '회전-22': (-30.0, 90.0), '회전-23': (-90.0, 90.0),
     '회전-24': (-115.0, 10.0),  '회전-25': (-90.0, 90.0), '회전-26': (-180.0, 180.0)
@@ -22,11 +21,8 @@ class WavingActionClient(Node):
     def __init__(self):
         super().__init__('waving_action_client')
         
-        # 1. MoveIt 서비스 클라이언트 세팅 (궤적 계산용)
         self.ik_client = self.create_client(GetPositionIK, '/compute_ik')
         self.plan_client = self.create_client(GetMotionPlan, '/plan_kinematic_path')
-        
-        # 2. 액션 클라이언트 세팅 (실행용)
         self._action_client = ActionClient(
             self, FollowJointTrajectory, '/joint_trajectory_controller/follow_joint_trajectory')
         
@@ -50,13 +46,18 @@ class WavingActionClient(Node):
         self.previous_end_joint_state = None 
         self.pending_target_joint_state = None
 
-        # 노드 시작 후 1초 뒤에 궤적 짜기 시작
-        self.timer = self.create_timer(1.0, self.start_planning)
-        self.started_planning = False
+        self.get_logger().info('⏳ MoveIt 서비스가 켜질 때까지 기다립니다...')
+        while not self.ik_client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().info('MoveIt /compute_ik 서비스를 찾을 수 없습니다. MoveIt이 켜져 있나요?')
+        while not self.plan_client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().info('MoveIt /plan_kinematic_path 서비스를 찾을 수 없습니다.')
+            
+        self.get_logger().info('✅ MoveIt 서비스 연결 성공!')
+        
+        # 🌟 무한 타이머 제거! 직접 함수 호출
+        self.start_planning()
 
     def start_planning(self):
-        if self.started_planning: return
-        self.started_planning = True
         self.get_logger().info('🧠 1단계: MoveIt을 통한 손인사 궤적 계산 시작...')
         self.process_next_target()
 
@@ -76,8 +77,9 @@ class WavingActionClient(Node):
 
     def process_next_target(self):
         if self.current_target_index >= len(self.targets):
-            self.get_logger().info('✅ 모든 궤적 계산 완료! 2초 뒤 액션 서버로 명령을 전송합니다.')
-            self.create_timer(2.0, self.send_action_goal)
+            self.get_logger().info('✅ 모든 궤적 계산 완료! 바로 액션 서버로 명령을 전송합니다.')
+            # 🌟 무한 반복되는 타이머 삭제! 딱 한 번만 실행되도록 직접 호출!
+            self.send_action_goal()
             return
 
         pose_data = self.targets[self.current_target_index]
@@ -116,7 +118,7 @@ class WavingActionClient(Node):
             target_positions = [all_positions[list(all_names).index(name)] for name in self.target_joints]
             self.request_trajectory(target_positions)
         else:
-            self.get_logger().error('❌ IK 실패')
+            self.get_logger().error(f'❌ IK 실패 (에러코드: {response.error_code.val})')
             rclpy.shutdown()
 
     def request_trajectory(self, target_positions):
@@ -125,6 +127,9 @@ class WavingActionClient(Node):
         req.motion_plan_request.num_planning_attempts = 10
         req.motion_plan_request.allowed_planning_time = 5.0
         req.motion_plan_request.path_constraints = self.create_joint_constraints()
+        
+        req.motion_plan_request.max_velocity_scaling_factor = 1.0
+        req.motion_plan_request.max_acceleration_scaling_factor = 1.0
         
         if self.previous_end_joint_state is None:
             req.motion_plan_request.start_state.is_diff = True
@@ -148,17 +153,25 @@ class WavingActionClient(Node):
     def plan_callback(self, future):
         response = future.result()
         if response.motion_plan_response.error_code.val == 1:
+            plan_joint_names = response.motion_plan_response.trajectory.joint_trajectory.joint_names
             trajectory_points = response.motion_plan_response.trajectory.joint_trajectory.points
+            
             last_point_time = 0.0
             
             for point in trajectory_points:
                 t = point.time_from_start.sec + (point.time_from_start.nanosec / 1e9)
                 last_point_time = t
                 absolute_time = self.total_time_offset + t
-                self.all_trajectory_points.append((absolute_time, list(point.positions)))
+                
+                ordered_positions = []
+                for name in self.target_joints:
+                    idx = list(plan_joint_names).index(name)
+                    ordered_positions.append(point.positions[idx])
+                
+                self.all_trajectory_points.append((absolute_time, ordered_positions))
             
             self.total_time_offset += last_point_time
-            self.total_time_offset += 0.5 # 점과 점 사이의 잠깐 대기 시간
+            self.total_time_offset += 0.5
             
             self.previous_end_joint_state = self.pending_target_joint_state
             self.current_target_index += 1
@@ -167,14 +180,11 @@ class WavingActionClient(Node):
             self.get_logger().error('❌ 궤적 계획 실패')
             rclpy.shutdown()
 
-    # ==========================================================
-    # Phase 2: 액션 클라이언트로 궤적 전송!
-    # ==========================================================
     def send_action_goal(self):
         self.get_logger().info('🚀 2단계: 궤적을 액션 서버로 던집니다!')
         
         if not self._action_client.wait_for_server(timeout_sec=3.0):
-            self.get_logger().error('❌ 액션 서버를 찾을 수 없습니다. dynamixel_action_server.py가 켜져 있나요?')
+            self.get_logger().error('❌ 액션 서버를 찾을 수 없습니다. action.py가 켜져 있나요?')
             rclpy.shutdown()
             return
 
@@ -182,15 +192,12 @@ class WavingActionClient(Node):
         trajectory = JointTrajectory()
         trajectory.joint_names = self.target_joints
 
-        # 계산해둔 시간을 Action Point 형식에 맞게 변환하여 넣기
         for t_target, angles in self.all_trajectory_points:
             point = JointTrajectoryPoint()
             point.positions = angles
-            
             sec = int(t_target)
             nanosec = int((t_target - sec) * 1e9)
             point.time_from_start = Duration(sec=sec, nanosec=nanosec)
-            
             trajectory.points.append(point)
 
         goal_msg.trajectory = trajectory
