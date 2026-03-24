@@ -14,7 +14,7 @@ import subprocess
 # --- 하드웨어 설정 ---
 JOINT_NAME_TO_ID = {
     '회전-30': 1, '회전-22': 2, '회전-23': 3,
-    '회전-24': 4, '회전-25': 5, '회전-26': 6
+    '회전-24': 4, '회전-25': 5, '회전-26': 6, '회전-28': 7
 }
 GEAR_RATIOS = {1: 25, 2: 25, 3: 1, 4: 15, 5: 1, 6: 1, 7: 1}
 DIRECTION_MAP = {1: 1, 2: 1, 3: -1, 4: 1, 5: -1, 6: -1, 7: 1}
@@ -92,9 +92,15 @@ class DynamixelActionServer(Node):
                     time.sleep(0.001)
 
                 angles = []
-                for name in self.target_joints:
-                    idx = joint_names.index(name)
-                    rad = point.positions[idx]
+                for i, name in enumerate(self.target_joints):       
+                    if name in joint_names:
+                        # MoveIt이나 클라이언트가 각도를 보내줬으면 그 각도를 따름
+                        idx = joint_names.index(name)
+                        rad = point.positions[idx]
+                    else:
+                        # 명단에 없으면(예: RViz에서 팔만 움직일 때) 현재 각도를 그대로 유지!
+                        rad = self.current_angles[i]
+                        
                     angles.append(rad)
                     
                     dxl_id = JOINT_NAME_TO_ID[name]

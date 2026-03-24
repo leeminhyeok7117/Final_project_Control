@@ -14,7 +14,7 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 JOINT_LIMITS_DEG = {
     '회전-30': (-120.0, 120.0), '회전-22': (-30.0, 90.0), '회전-23': (-90.0, 90.0),
-    '회전-24': (-115.0, 10.0),  '회전-25': (-90.0, 90.0), '회전-26': (-180.0, 180.0)
+    '회전-24': (-115.0, 10.0),  '회전-25': (-90.0, 90.0), '회전-26': (-180.0, 180.0), '회전-28': (-180.0, 180.0)
 }
 
 class WavingActionClient(Node):
@@ -26,20 +26,24 @@ class WavingActionClient(Node):
         self._action_client = ActionClient(
             self, FollowJointTrajectory, '/joint_trajectory_controller/follow_joint_trajectory')
         
+        # 🌟 새롭게 따온 13개 스텝 + 그리퍼 상태 완벽 적용
         self.targets = [
-            {'x': 0.223, 'y': 0.129, 'z': 0.572, 'qx': 0.344, 'qy': -0.618, 'qz': -0.344, 'qw': 0.618},
-            {'x': 0.223, 'y': 0.384, 'z': 1.026, 'qx': -0.693, 'qy': 0.141, 'qz': 0.693, 'qw': -0.141},
-            {'x': 0.227, 'y': 0.331, 'z': 1.183, 'qx': -0.704, 'qy': 0.068, 'qz': 0.704, 'qw': -0.068},
-            {'x': 0.380, 'y': 0.298, 'z': 1.042, 'qx': -0.606, 'qy': 0.241, 'qz': 0.748, 'qw': 0.124},
-            {'x': 0.227, 'y': 0.331, 'z': 1.183, 'qx': -0.704, 'qy': 0.068, 'qz': 0.704, 'qw': -0.068},
-            {'x': -0.003, 'y': 0.341, 'z': 1.044, 'qx': 0.738, 'qy': 0.165, 'qz': -0.639, 'qw': 0.141},
-            {'x': 0.227, 'y': 0.331, 'z': 1.183, 'qx': -0.704, 'qy': 0.068, 'qz': 0.704, 'qw': -0.068},
-            {'x': 0.380, 'y': 0.298, 'z': 1.042, 'qx': -0.606, 'qy': 0.241, 'qz': 0.748, 'qw': 0.124},
-            {'x': 0.223, 'y': 0.384, 'z': 1.026, 'qx': -0.693, 'qy': 0.141, 'qz': 0.693, 'qw': -0.141},
-            {'x': 0.223, 'y': 0.129, 'z': 0.572, 'qx': 0.344, 'qy': -0.618, 'qz': -0.344, 'qw': 0.618}
+            {'x': 0.228, 'y': -0.104, 'z': 0.536, 'qx': 0.263, 'qy': -0.656, 'qz': -0.263, 'qw': 0.656, 'gripper': -0.5},    # 1. 앙다물기
+            {'x': 0.228, 'y': -0.067, 'z': 0.611, 'qx': 0.371, 'qy': -0.602, 'qz': -0.371, 'qw': 0.602, 'gripper': 0.01},    # 2. 앙다물기
+            {'x': 0.228, 'y': 0.003, 'z': 0.621, 'qx': 0.478, 'qy': -0.521, 'qz': -0.478, 'qw': 0.521, 'gripper': 0.01},    # 3. 앙다물기
+            {'x': 0.228, 'y': 0.178, 'z': 0.608, 'qx': 0.495, 'qy': -0.505, 'qz': -0.495, 'qw': 0.505, 'gripper': 0.01},    # 4. 앙다물기
+            {'x': 0.228, 'y': 0.178, 'z': 0.608, 'qx': 0.495, 'qy': -0.505, 'qz': -0.495, 'qw': 0.505, 'gripper': -0.35},   # 5. 벌리기 (제자리)
+            {'x': 0.228, 'y': 0.281, 'z': 0.614, 'qx': 0.500, 'qy': -0.500, 'qz': -0.500, 'qw': 0.500, 'gripper': -0.35},   # 6. 벌리기
+            {'x': 0.228, 'y': 0.281, 'z': 0.614, 'qx': 0.500, 'qy': -0.500, 'qz': -0.500, 'qw': 0.500, 'gripper': -0.033},  # 7. 잡은상태 (제자리)
+            {'x': 0.173, 'y': 0.258, 'z': 0.689, 'qx': 0.584, 'qy': -0.399, 'qz': -0.399, 'qw': 0.584, 'gripper': -0.033},  # 8. 잡은상태
+            {'x': 0.151, 'y': 0.288, 'z': 0.633, 'qx': 0.584, 'qy': -0.399, 'qz': -0.399, 'qw': 0.584, 'gripper': -0.333},   # 9. 벌리기
+            {'x': 0.151, 'y': 0.288, 'z': 0.633, 'qx': 0.584, 'qy': -0.399, 'qz': -0.399, 'qw': 0.584, 'gripper': -0.35},    # 10. 앙다물기 (제자리)
+            {'x': 0.254, 'y': 0.158, 'z': 0.633, 'qx': 0.546, 'qy': -0.449, 'qz': -0.448, 'qw': 0.547, 'gripper': 0.01},    # 11. 앙다물기
+            {'x': 0.264, 'y': 0.088, 'z': 0.617, 'qx': 0.533, 'qy': -0.464, 'qz': -0.464, 'qw': 0.534, 'gripper': 0.01},    # 12. 앙다물기
+            {'x': 0.228, 'y': 0.001, 'z': 0.426, 'qx': 0.000, 'qy': -0.707, 'qz': -0.000, 'qw': 0.707, 'gripper': 0.01},    # 13. 앙다물기
         ]
         
-        self.target_joints = ['회전-30', '회전-22', '회전-23', '회전-24', '회전-25', '회전-26']
+        self.target_joints = ['회전-30', '회전-22', '회전-23', '회전-24', '회전-25', '회전-26','회전-28']
         self.current_target_index = 0
         self.total_time_offset = 0.0
         self.all_trajectory_points = []
@@ -164,9 +168,15 @@ class WavingActionClient(Node):
                 absolute_time = self.total_time_offset + t
                 
                 ordered_positions = []
-                for name in self.target_joints:
-                    idx = list(plan_joint_names).index(name)
-                    ordered_positions.append(point.positions[idx])
+                current_gripper_val = self.targets[self.current_target_index]['gripper']
+                for name in self.target_joints: 
+                    if name in plan_joint_names:
+                        # 팔 관절(6개)은 MoveIt이 계산해준 궤적에서 가져옵니다.
+                        idx = list(plan_joint_names).index(name)
+                        ordered_positions.append(point.positions[idx])
+                    else:
+                        # MoveIt 결과에 없는 관절('회전-28')은 우리가 적어둔 값을 그대로 씁니다!
+                        ordered_positions.append(current_gripper_val)
                 
                 self.all_trajectory_points.append((absolute_time, ordered_positions))
             
@@ -220,7 +230,7 @@ class WavingActionClient(Node):
     def get_result_callback(self, future):
         result = future.result().result
         self.get_logger().info('🏁 로봇으로부터 [손인사 완료] 보고를 받았습니다! 프로그램을 종료합니다.')
-        rclpy.shutdown()
+        # rclpy.shutdown()
 
 def main(args=None):
     rclpy.init(args=args)
