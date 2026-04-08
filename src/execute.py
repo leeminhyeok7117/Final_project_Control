@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 import csv
@@ -14,10 +15,10 @@ JOINT_NAME_TO_ID = {
     '회전-30': 1, '회전-22': 2, '회전-23': 3,
     '회전-24': 4, '회전-25': 5, '회전-26': 6
 }
-GEAR_RATIOS = {1: 25, 2: 25, 3: 1, 4: 15, 5: 1, 6: 1, 7: 1}
-DIRECTION_MAP = {1: 1, 2: 1, 3: -1, 4: 1, 5: 1, 6: -1, 7: 1}
+GEAR_RATIOS = {1: 15, 2: 15, 3: 5, 4: 5, 5: 1, 6: 1, 7: 1}
+DIRECTION_MAP = {1: 1, 2: 1, 3: -1, 4: 1, 5: -1, 6: -1, 7: 1}
 BASE_MAX_VELOCITY = 1000
-
+SPEED_FACTOR = 2.0
 class TrajectoryExecutor(Node):
     def __init__(self, port_handler, packet_handler):
         super().__init__('trajectory_executor')
@@ -48,6 +49,7 @@ class TrajectoryExecutor(Node):
         
         for dxl_id in target_ids:
             # 현재 위치 읽기
+            self.packetHandler.write4ByteTxRx(self.portHandler, dxl_id, 108, 20)
             pos, _, _ = self.packetHandler.read4ByteTxRx(self.portHandler, dxl_id, 132) # ADDR_PRESENT_POSITION
             if pos > 2147483647: pos -= 4294967296
             self.initial_motor_pulses[dxl_id] = pos
@@ -80,7 +82,7 @@ class TrajectoryExecutor(Node):
 
         for t_target, angles in self.trajectory_data:
             
-            while (time.time() - start_time) < t_target:
+            while (time.time() - start_time) < (t_target/SPEED_FACTOR):
                 time.sleep(0.001)
 
             for name, rad in zip(self.joint_names, angles):

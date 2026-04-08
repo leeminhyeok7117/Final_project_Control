@@ -23,8 +23,8 @@ OP_MODE_POSITION        = 3  # 일반 포지션 모드 (0~4095)
 OP_MODE_EXT_POSITION    = 4  # 확장 포지션 모드 (멀티턴)
 
 # 모터 분류 및 설정
-GEARED_MOTORS = [1, 2, 4]
-NORMAL_MOTORS = [3, 5, 6, 7]
+GEARED_MOTORS = [1, 2, 3, 4]
+NORMAL_MOTORS = [5, 6, 7]
 
 JOG_STEP = 300 # 한 번 키보드를 누를 때마다 움직일 펄스 양 (크면 빨리, 작으면 정밀하게 돎)
 
@@ -89,8 +89,8 @@ def reboot_and_home_geared(dxl_id):
     time.sleep(0.5)
 
 def home_normal_motors():
-    """나머지 일반 모터(3,5,6,7)를 포지션 모드로 변경 후 2048로 이동"""
-    print("\n\n--- 일반 모터(3, 5, 6, 7) 원점 복귀 ---")
+    """나머지 일반 모터(5,6,7)를 포지션 모드로 변경 후 2048로 이동"""
+    print("\n\n--- 일반 모터(5, 6, 7) 원점 복귀 ---")
     for dxl_id in NORMAL_MOTORS:
         packetHandler.write1ByteTxRx(portHandler, dxl_id, ADDR_TORQUE_ENABLE, TORQUE_DISABLE)
         packetHandler.write1ByteTxRx(portHandler, dxl_id, ADDR_OPERATING_MODE, OP_MODE_POSITION)
@@ -107,10 +107,10 @@ def calibrate_origin():
     print("\n=======================================================")
     print("      키보드 수동 원점 정렬 (Manual Homing) 프로그램      ")
     print("=======================================================")
-    print(" [ 1, 2, 4 ] 숫자키 : 조종할 모터 선택 (기본: 1번)")
+    print(" [ 1, 2, 3, 4 ] 숫자키 : 조종할 모터 선택 (기본: 1번)")
     print(" [ a ] / [ d ] : 선택한 모터 시계 반대 / 시계 방향으로 회전")
     print(" [ r ] : 선택한 모터 멀티턴 초기화(Reboot) 및 2048로 정렬")
-    print(" [ h ] : 나머지 모터(3, 5, 6, 7) 2048로 원점 복귀")
+    print(" [ h ] : 나머지 모터(5, 6, 7) 2048로 원점 복귀")
     print(" [ q ] : 프로그램 종료")
     print("=======================================================\n")
     
@@ -126,7 +126,7 @@ def calibrate_origin():
             if key == 'q':
                 print("\n프로그램을 종료합니다.")
                 break
-            elif key in ['1', '2', '4']:
+            elif key in ['1', '2', '3', '4']:
                 selected_motor = int(key)
                 print(f"\n-> {selected_motor}번 모터 선택됨")
             elif key == 'a':

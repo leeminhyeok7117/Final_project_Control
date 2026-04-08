@@ -1,12 +1,16 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot name="arm1_URDF">
+    <material name="white">
+        <color rgba="1.0 1.0 1.0 1.0"/>
+    </material>
+
     <link name="base">
         <visual name="base_visual">
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
             <geometry>
                 <mesh filename="package://final_project/meshes/base.stl" scale="0.001 0.001 0.001" />
             </geometry>
-        </visual>
+            <material name="white"/> </visual>
         <collision name="base_collision">
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
             <geometry>
@@ -26,7 +30,7 @@
             <geometry>
                 <mesh filename="package://final_project/meshes/G_2.stl" scale="0.001 0.001 0.001" />
             </geometry>
-        </visual>
+            <material name="white"/> </visual>
         <collision name="G_2_collision">
             <origin xyz="2.0128346989167768e-10 0.05165000270197766 0.01300000375024975" rpy="2.1137605554777422e-15 7.4824881293612875e-16 1.5707963267948968" />
             <geometry>
@@ -46,7 +50,7 @@
             <geometry>
                 <mesh filename="package://final_project/meshes/G_4.stl" scale="0.001 0.001 0.001" />
             </geometry>
-        </visual>
+            <material name="white"/> </visual>
         <collision name="G_4_collision">
             <origin xyz="-0.06519999979871717 -3.750249686906848e-09 2.7019765980185186e-09" rpy="-3.141592653589793 -5.163040450613385e-30 -3.8424124992884325e-16" />
             <geometry>
@@ -66,7 +70,7 @@
             <geometry>
                 <mesh filename="package://final_project/meshes/G_5.stl" scale="0.001 0.001 0.001" />
             </geometry>
-        </visual>
+            <material name="white"/> </visual>
         <collision name="G_5_collision">
             <origin xyz="2.0128354094595124e-10 0.04037499624975049 -0.16054999729802374" rpy="-3.1415926535897913 -1.5707963267948957 0" />
             <geometry>
@@ -86,7 +90,7 @@
             <geometry>
                 <mesh filename="package://final_project/meshes/G_7.stl" scale="0.001 0.001 0.001" />
             </geometry>
-        </visual>
+            <material name="white"/> </visual>
         <collision name="G_7_collision">
             <origin xyz="-0.057550002701976695 3.750245075595515e-09 -0.011500000201280365" rpy="3.141592653589793 -1.10361217236557e-15 -1.5707963267948697" />
             <geometry>
@@ -106,7 +110,7 @@
             <geometry>
                 <mesh filename="package://final_project/meshes/G_13.stl" scale="0.001 0.001 0.001" />
             </geometry>
-        </visual>
+            <material name="white"/> </visual>
         <collision name="G_13_collision">
             <origin xyz="2.0125682453908667e-10 -2.6986778323134787e-09 0.018499996249768325" rpy="-3.1415926535897545 2.7586953781964552e-14 1.5707963267948972" />
             <geometry>
@@ -126,7 +130,7 @@
             <geometry>
                 <mesh filename="package://final_project/meshes/G_25.stl" scale="0.001 0.001 0.001" />
             </geometry>
-        </visual>
+            <material name="white"/> </visual>
         <collision name="G_25_collision">
             <origin xyz="-0.20042499979871867 0.0013749962497433582 -0.25704999729802425" rpy="3.1415926535897665 4.567492924801194e-16 -5.1174342541353607e-17" />
             <geometry>
@@ -146,7 +150,7 @@
             <geometry>
                 <mesh filename="package://final_project/meshes/G_27.stl" scale="0.001 0.001 0.001" />
             </geometry>
-        </visual>
+            <material name="white"/> </visual>
         <collision name="G_27_collision">
             <origin xyz="-0.16042499979872615 -0.0013749962497555976 0.4026999973013231" rpy="-2.6664811242653585e-14 1.3305674229158715e-16 7.892991815695737e-17" />
             <geometry>
@@ -166,7 +170,7 @@
             <geometry>
                 <mesh filename="package://final_project/meshes/G_28.stl" scale="0.001 0.001 0.001" />
             </geometry>
-        </visual>
+            <material name="white"/> </visual>
         <collision name="G_28_collision">
             <origin xyz="0.4529499973013176 -0.0013749962497559382 0.17742499979873572" rpy="-2.7592757999390442e-14 1.570796326794874 0" />
             <geometry>
@@ -182,13 +186,13 @@
             <inertia ixx="0.0012741334763335978" iyy="0.001272464352744418" izz="0.0020653341471157383" ixy="8.847089727481716e-17" iyz="-9.523880961507841e-07" ixz="-2.770252915355874e-17" />
         </inertial>
         <visual name="G_50_visual">
-            <origin xyz="-0.05165000270197695 -3.750249621958801e-09 0.01300000020128298" rpy="-1.4119781732713213e-14 3.5247026839031876e-16 3.141592653589793" />
+            <origin xyz="-0.051650002701976695 -3.750249621958801e-09 0.01300000020128298" rpy="-1.4119781732713213e-14 3.5247026839031876e-16 3.141592653589793" />
             <geometry>
                 <mesh filename="package://final_project/meshes/G_50.stl" scale="0.001 0.001 0.001" />
             </geometry>
-        </visual>
+            <material name="white"/> </visual>
         <collision name="G_50_collision">
-            <origin xyz="-0.05165000270197695 -3.750249621958801e-09 0.01300000020128298" rpy="-1.4119781732713213e-14 3.5247026839031876e-16 3.141592653589793" />
+            <origin xyz="-0.051650002701976695 -3.750249621958801e-09 0.01300000020128298" rpy="-1.4119781732713213e-14 3.5247026839031876e-16 3.141592653589793" />
             <geometry>
                 <mesh filename="package://final_project/meshes/G_50.stl" scale="0.001 0.001 0.001" />
             </geometry>

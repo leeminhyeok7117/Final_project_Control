@@ -16,7 +16,7 @@ JOINT_NAME_TO_ID = {
     '회전-30': 1, '회전-22': 2, '회전-23': 3,
     '회전-24': 4, '회전-25': 5, '회전-26': 6, '회전-28': 7
 }
-GEAR_RATIOS = {1: 25, 2: 25, 3: 1, 4: 15, 5: 1, 6: 1, 7: 1}
+GEAR_RATIOS = {1: 15, 2: 15, 3: 5, 4: 5, 5: 1, 6: 1, 7: 1}
 DIRECTION_MAP = {1: 1, 2: 1, 3: -1, 4: 1, 5: -1, 6: -1, 7: 1}
 
 class DynamixelActionServer(Node):
@@ -55,6 +55,7 @@ class DynamixelActionServer(Node):
     def capture_current_state_as_origin(self):
         target_ids = list(JOINT_NAME_TO_ID.values())
         for dxl_id in target_ids:
+            self.packetHandler.write4ByteTxRx(self.portHandler, dxl_id, 108, 20)
             # 1. 현재 원점 펄스 읽기
             pos, _, _ = self.packetHandler.read4ByteTxRx(self.portHandler, dxl_id, 132) 
             if pos > 2147483647: pos -= 4294967296
