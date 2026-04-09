@@ -12,11 +12,6 @@ from geometry_msgs.msg import PoseStamped
 from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
-JOINT_LIMITS_DEG = {
-    '회전-30': (-120.0, 120.0), '회전-22': (-30.0, 90.0), '회전-23': (-90.0, 90.0),
-    '회전-24': (-115.0, 10.0),  '회전-25': (-90.0, 90.0), '회전-26': (-180.0, 180.0), '회전-28': (-180.0, 180.0)
-}
-
 class WavingActionClient(Node):
     def __init__(self):
         super().__init__('waving_action_client')
@@ -24,7 +19,7 @@ class WavingActionClient(Node):
         self.ik_client = self.create_client(GetPositionIK, '/compute_ik')
         self.plan_client = self.create_client(GetMotionPlan, '/plan_kinematic_path')
         self._action_client = ActionClient(
-            self, FollowJointTrajectory, '/joint_trajectory_controller/follow_joint_trajectory')
+            self, FollowJointTrajectory, '/real_arm_controller/follow_joint_trajectory')
         
         # 🌟 새롭게 따온 13개 스텝 + 그리퍼 상태 완벽 적용
         self.targets = [
@@ -43,7 +38,7 @@ class WavingActionClient(Node):
             {'x': 0.228, 'y': 0.001, 'z': 0.426, 'qx': 0.000, 'qy': -0.707, 'qz': -0.000, 'qw': 0.707, 'gripper': 0.01},    # 13. 앙다물기
         ]
         
-        self.target_joints = ['회전-30', '회전-22', '회전-23', '회전-24', '회전-25', '회전-26','회전-28']
+        self.target_joints = ['joint_7', 'joint_8', 'joint_9', 'joint_10', 'joint_11', 'joint_12']
         self.current_target_index = 0
         self.total_time_offset = 0.0
         self.all_trajectory_points = []
@@ -66,18 +61,11 @@ class WavingActionClient(Node):
         self.process_next_target()
 
     def create_joint_constraints(self):
-        constraints = Constraints()
-        for joint_name, (min_deg, max_deg) in JOINT_LIMITS_DEG.items():
-            jc = JointConstraint()
-            jc.joint_name = joint_name
-            min_rad = math.radians(min_deg)
-            max_rad = math.radians(max_deg)
-            jc.position = (max_rad + min_rad) / 2.0
-            jc.tolerance_above = (max_rad - min_rad) / 2.0
-            jc.tolerance_below = (max_rad - min_rad) / 2.0
-            jc.weight = 1.0
-            constraints.joint_constraints.append(jc)
-        return constraints
+        """
+        각도 제한을 완전히 제거합니다. 
+        비어있는 Constraints 객체를 반환하여 MoveIt이 자유롭게 경로를 찾게 합니다.
+        """
+        return Constraints()  # 아무 제약 조건도 넣지 않음
 
     def process_next_target(self):
         if self.current_target_index >= len(self.targets):
@@ -115,14 +103,22 @@ class WavingActionClient(Node):
 
     def ik_callback(self, future):
         response = future.result()
+        # 에러 코드가 SUCCESS(1)인 경우뿐만 아니라, 
+        # 혹시 모를 상황을 대비해 로그를 더 자세히 찍도록 개선했습니다.
         if response.error_code.val == 1:
             self.pending_target_joint_state = response.solution.joint_state
             all_names = response.solution.joint_state.name
             all_positions = response.solution.joint_state.position
-            target_positions = [all_positions[list(all_names).index(name)] for name in self.target_joints]
-            self.request_trajectory(target_positions)
+            
+            # URDF 조인트 이름과 매칭 확인
+            try:
+                target_positions = [all_positions[list(all_names).index(name)] for name in self.target_joints]
+                self.request_trajectory(target_positions)
+            except ValueError as e:
+                self.get_logger().error(f'❌ URDF와 코드의 조인트 이름이 맞지 않습니다: {e}')
+                rclpy.shutdown()
         else:
-            self.get_logger().error(f'❌ IK 실패 (에러코드: {response.error_code.val})')
+            self.get_logger().error(f'❌ IK 실패 (에러코드: {response.error_code.val}). 각도 제한을 풀었는데도 실패한다면 목표 좌표가 로봇이 닿을 수 없는 곳일 수 있습니다.')
             rclpy.shutdown()
 
     def request_trajectory(self, target_positions):

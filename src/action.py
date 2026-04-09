@@ -13,19 +13,18 @@ import subprocess
 
 # --- 하드웨어 설정 ---
 JOINT_NAME_TO_ID = {
-    '회전-30': 1, '회전-22': 2, '회전-23': 3,
-    '회전-24': 4, '회전-25': 5, '회전-26': 6, '회전-28': 7
+    'joint_7': 1, 'joint_8': 2, 'joint_9': 3,
+    'joint_10': 4, 'joint_11': 5, 'joint_12': 6
 }
-GEAR_RATIOS = {1: 15, 2: 15, 3: 5, 4: 5, 5: 1, 6: 1, 7: 1}
-DIRECTION_MAP = {1: 1, 2: 1, 3: -1, 4: 1, 5: -1, 6: -1, 7: 1}
+GEAR_RATIOS = {1: 15, 2: 15, 3: 5, 4: 5, 5: 1, 6: 1}
+DIRECTION_MAP = {1: 1, 2: 1, 3: -1, 4: 1, 5: 1, 6: 1}
 
 class DynamixelActionServer(Node):
     def __init__(self, port_handler, packet_handler):
         super().__init__('dynamixel_action_server')
         
-        # 가짜 로봇(방해꾼) 차단
         subprocess.run(['ros2', 'control', 'set_controller_state', 'joint_state_broadcaster', 'inactive'], capture_output=True)
-        subprocess.run(['ros2', 'control', 'set_controller_state', 'joint_trajectory_controller', 'inactive'], capture_output=True)
+        subprocess.run(['ros2', 'control', 'set_controller_state', 'arm_controller', 'inactive'], capture_output=True)
         
         self.portHandler = port_handler
         self.packetHandler = packet_handler
@@ -47,7 +46,7 @@ class DynamixelActionServer(Node):
         self._action_server = ActionServer(
             self,
             FollowJointTrajectory,
-            '/joint_trajectory_controller/follow_joint_trajectory',
+            '/real_arm_controller/follow_joint_trajectory',
             self.execute_callback
         )
         self.get_logger().info('🤖 다이나믹셀 액션 서버 가동 완료! 명령을 기다립니다...')
@@ -140,7 +139,7 @@ class DynamixelActionServer(Node):
                     if cur_pos > 2147483647: cur_pos -= 4294967296
                     
                     # 목표 위치와 현재 위치의 오차가 허용 범위(예: 20펄스) 이내인지 확인
-                    if abs(cur_pos - last_goal_pulses[dxl_id]) > 25: # 약 2도 이내 오차
+                    if abs(cur_pos - last_goal_pulses[dxl_id]) > 150: # 약 2도 이내 오차
                         all_done = False
                         break
                 

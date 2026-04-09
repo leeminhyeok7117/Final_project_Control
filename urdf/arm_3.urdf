@@ -1,0 +1,202 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<robot name="arm_ver_3">
+
+    <material name="white">
+        <color rgba="1.0 1.0 1.0 1.0"/>
+    </material>
+
+    <link name="base">
+        <inertial>
+            <origin xyz="6.7459e-09 -0.0131 0.5124" rpy="0 0 0" />
+            <mass value="17.337" />
+            <inertia ixx="3.248" iyy="3.238" izz="0.100" ixy="0" iyz="0.099" ixz="0" />
+        </inertial>
+        <visual name="base_visual">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/base.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision name="base_collision">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/base.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="joint1">
+        <inertial>
+            <origin xyz="-0.0001 -0.0027 -0.0466" rpy="0 0 0" />
+            <mass value="3.421" />
+            <inertia ixx="0.010" iyy="0.012" izz="0.009" ixy="0" iyz="0.0004" ixz="0" />
+        </inertial>
+        <visual name="joint1_visual">
+            <origin xyz="1.77e-17 0.95 0.108" rpy="1.5707 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/joint1.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision name="joint1_collision">
+            <origin xyz="1.77e-17 0.95 0.108" rpy="1.5707 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/joint1.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="joint2">
+        <inertial>
+            <origin xyz="-0.051 0 -0.037" rpy="0 0 0" />
+            <mass value="5.966" />
+            <inertia ixx="0.008" iyy="0.026" izz="0.028" ixy="0" iyz="0" ixz="-0.0006" />
+        </inertial>
+        <visual name="joint2_visual">
+            <origin xyz="-0.949 -0.186 -0.039" rpy="3.1415 -1.5707 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/joint2.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision name="joint2_collision">
+            <origin xyz="-0.949 -0.186 -0.039" rpy="3.1415 -1.5707 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/joint2.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="joint3">
+        <inertial>
+            <origin xyz="0 0.0003 0.038" rpy="0 0 0" />
+            <mass value="1.265" />
+            <inertia ixx="0.0027" iyy="0.0014" izz="0.0020" ixy="0" iyz="-1.2e-05" ixz="0" />
+        </inertial>
+        <visual name="joint3_visual">
+            <origin xyz="6.3e-17 -0.186 0.798" rpy="-3.1415 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/joint3.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision name="joint3_collision">
+            <origin xyz="6.3e-17 -0.186 0.798" rpy="-3.1415 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/joint3.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="joint4">
+        <inertial>
+            <origin xyz="0.0005 0.070 -0.037" rpy="0 0 0" />
+            <mass value="4.552" />
+            <inertia ixx="0.020" iyy="0.004" izz="0.021" ixy="-0.0001" iyz="0.0002" ixz="0" />
+        </inertial>
+        <visual name="joint4_visual">
+            <origin xyz="8.0e-16 0.73 0.148" rpy="1.5707 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/joint4.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision name="joint4_collision">
+            <origin xyz="8.0e-16 0.73 0.148" rpy="1.5707 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/joint4.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="joint5">
+        <inertial>
+            <origin xyz="0 -0.0001 0.029" rpy="0 0 0" />
+            <mass value="1.165" />
+            <inertia ixx="0.0006" iyy="0.0006" izz="0.0006" ixy="0" iyz="4.3e-06" ixz="0" />
+        </inertial>
+        <visual name="joint5_visual">
+            <origin xyz="1.1e-14 -0.186 0.558" rpy="3.1415 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/joint5.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision name="joint5_collision">
+            <origin xyz="1.1e-14 -0.186 0.558" rpy="3.1415 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/joint5.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="endpoint">
+        <inertial>
+            <origin xyz="0 -0.079 -0.016" rpy="0 0 0" />
+            <mass value="1.889" />
+            <inertia ixx="0.006" iyy="0.004" izz="0.002" ixy="0" iyz="4.3e-06" ixz="6.3e-05" />
+        </inertial>
+        <visual name="endpoint_visual">
+            <origin xyz="1.0e-15 -0.500 -0.206" rpy="-1.5707 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/endpoint.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision name="endpoint_collision">
+            <origin xyz="1.0e-15 -0.500 -0.206" rpy="-1.5707 0 0" />
+            <geometry>
+                <mesh filename="package://final_project/meshes/endpoint.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="joint_7" type="revolute">
+        <origin xyz="0.0 -0.10875 0.95" rpy="-1.5707 0 0" />
+        <parent link="base" />
+        <child link="joint1" />
+        <axis xyz="0 0 1" />
+        <limit lower="-3.1416" upper="1.3963" effort="10.0" velocity="0.35" />
+    </joint>
+
+    <joint name="joint_8" type="revolute">
+        <origin xyz="0.039625 0 -0.0778" rpy="-1.5707 0 -1.5707" />
+        <parent link="joint1" />
+        <child link="joint2" />
+        <axis xyz="0 0 1" />
+        <limit lower="-2.0944" upper="0.3491" effort="10.0" velocity="0.35" />
+    </joint>
+
+    <joint name="joint_9" type="revolute">
+        <origin xyz="-0.15125 0 -0.039625" rpy="0 -1.5707 0" />
+        <parent link="joint2" />
+        <child link="joint3" />
+        <axis xyz="0 0 1" />
+        <limit lower="-3.1416" upper="3.1416" effort="10.0" velocity="1.0" />
+    </joint>
+
+    <joint name="joint_10" type="revolute">
+        <origin xyz="0 -0.038 0.06875" rpy="1.5707 0 0" />
+        <parent link="joint3" />
+        <child link="joint4" />
+        <axis xyz="0 0 1" />
+        <limit lower="-2.0944" upper="0.1745" effort="10.0" velocity="1.0" />
+    </joint>
+
+    <joint name="joint_11" type="revolute">
+        <origin xyz="0 0.172 -0.038" rpy="-1.5707 0 0" />
+        <parent link="joint4" />
+        <child link="joint5" />
+        <axis xyz="0 0 1" />
+        <limit lower="-3.1416" upper="3.1416" effort="10.0" velocity="3.0" />
+    </joint>
+
+    <joint name="joint_12" type="revolute">
+        <origin xyz="0 0.0169 0.058" rpy="-1.5707 0 0" />
+        <parent link="joint5" />
+        <child link="endpoint" />
+        <axis xyz="0 0 1" />
+        <limit lower="-1.7453" upper="1.7453" effort="10.0" velocity="3.0" />
+    </joint>
+</robot>
