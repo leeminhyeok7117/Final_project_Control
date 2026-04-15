@@ -111,9 +111,11 @@ class WavingActionClient(Node):
             all_positions = response.solution.joint_state.position
             
             # URDF 조인트 이름과 매칭 확인
+            # joint_13(그리퍼)은 MoveIt arm 그룹에 없으므로 IK 결과에서 제외
+            arm_joints = [n for n in self.target_joints if n != 'joint_13']
             try:
-                target_positions = [all_positions[list(all_names).index(name)] for name in self.target_joints]
-                self.request_trajectory(target_positions)
+                target_positions = [all_positions[list(all_names).index(name)] for name in arm_joints]
+                self.request_trajectory(target_positions, arm_joints)
             except ValueError as e:
                 self.get_logger().error(f'❌ URDF와 코드의 조인트 이름이 맞지 않습니다: {e}')
                 rclpy.shutdown()
@@ -121,7 +123,7 @@ class WavingActionClient(Node):
             self.get_logger().error(f'❌ IK 실패 (에러코드: {response.error_code.val}). 각도 제한을 풀었는데도 실패한다면 목표 좌표가 로봇이 닿을 수 없는 곳일 수 있습니다.')
             rclpy.shutdown()
 
-    def request_trajectory(self, target_positions):
+    def request_trajectory(self, target_positions, arm_joints):
         req = GetMotionPlan.Request()
         req.motion_plan_request.group_name = 'arm'
         req.motion_plan_request.num_planning_attempts = 10
@@ -137,7 +139,8 @@ class WavingActionClient(Node):
             req.motion_plan_request.start_state.joint_state = self.previous_end_joint_state
 
         goal_constraint = Constraints()
-        for name, pos in zip(self.target_joints, target_positions):
+        # joint_13(그리퍼)은 MoveIt이 모르므로 arm 관절(6개)만 goal constraint에 넣음
+        for name, pos in zip(arm_joints, target_positions):
             jc = JointConstraint()
             jc.joint_name = name
             jc.position = pos

@@ -14,10 +14,11 @@ import subprocess
 # --- 하드웨어 설정 ---
 JOINT_NAME_TO_ID = {
     'joint_7': 1, 'joint_8': 2, 'joint_9': 3,
-    'joint_10': 4, 'joint_11': 5, 'joint_12': 6
+    'joint_10': 4, 'joint_11': 5, 'joint_12': 6,
+    'joint_13': 7   # 그리퍼 모터
 }
-GEAR_RATIOS = {1: 15, 2: 15, 3: 5, 4: 5, 5: 1, 6: 1}
-DIRECTION_MAP = {1: 1, 2: 1, 3: -1, 4: 1, 5: 1, 6: 1}
+GEAR_RATIOS  = {1: 15, 2: 15, 3: 5, 4: 5, 5: 1, 6: 1, 7: 1}
+DIRECTION_MAP = {1: 1, 2: 1, 3: -1, 4: 1, 5: 1, 6: 1, 7: -1}
 
 class DynamixelActionServer(Node):
     def __init__(self, port_handler, packet_handler):
